@@ -7,15 +7,33 @@ class Person:
         self.age = age
         Person.people.update({self.name: self})
 
-    def add_partner(self, pertner_name: str) -> None:
-        self.partner = Person.people[pertner_name]
+    def add_partner(self, partner_name: str) -> None:
+        self.partner = Person.people[partner_name]
 
 
 def create_person_list(people: list) -> list:
-    people_list = [Person(person["name"], person["age"]) for person in people]
-    for index, obj in enumerate(people_list):
-        partner_name = list(people[index].values())[2]
-        if partner_name is not None:
-            partner = Person.people[list(people[index].values())[2]]
-            setattr(obj, list(people[index].keys())[2], partner)
+
+    people_list = []
+    for person in people:
+        new_obj = Person(person["name"], person["age"])
+        try:
+            if person["wife"] is not None:
+                new_obj.wife = person["wife"]
+        except (KeyError, AttributeError):
+            if person["husband"] is not None:
+                new_obj.husband = person["husband"]
+        people_list.append(new_obj)
+    for obj in people_list:
+        try:
+            partner = Person.people[obj.wife]
+            delattr(obj, "wife")
+            setattr(obj, "wife", partner)
+        except (KeyError, AttributeError):
+            try:
+                partner = Person.people[obj.husband]
+                delattr(obj, "husband")
+                setattr(obj, "husband", partner)
+            except (KeyError, AttributeError):
+                continue
+
     return people_list
